@@ -489,7 +489,13 @@ public class RunnerArgs {
      */
     @VisibleForTesting
     static boolean isClassOrMethod(String line) {
-      return line.matches(CLASS_OR_METHOD_REGEX);
+      for (int i = 0; i < line.length(); i++) {
+        char c = line.charAt(i);
+        if (c == '#' || Character.isUpperCase(c)) {
+          return true;
+        }
+      }
+      return false;
     }
 
     /**

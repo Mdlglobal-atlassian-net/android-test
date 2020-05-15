@@ -25,6 +25,7 @@ import androidx.test.filters.SmallTest;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import org.junit.Before;
@@ -34,6 +35,8 @@ import org.junit.runner.JUnitCore;
 import org.junit.runner.Request;
 import org.junit.runner.RunWith;
 import org.junit.runner.notification.RunListener;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -50,6 +53,21 @@ public class TestRequestBuilderLocalTest {
 
     @Test
     public void noMatch() {}
+  }
+
+  @RunWith(Parameterized.class)
+  public static class ParameterizedTest {
+
+    @Parameters
+    public static Collection<Object[]> parameters() {
+
+      return Arrays.asList(new Object[][] {{0}, {1}});
+    }
+
+    public ParameterizedTest(int input) {}
+
+    @Test
+    public void param() {}
   }
 
   @Mock private ClassPathScanner mockClassPathScanner;
@@ -96,6 +114,27 @@ public class TestRequestBuilderLocalTest {
     List<String> results = runRequest(builder.build());
 
     assertThat(results).containsExactly(TestFixture.class.getName() + "#match");
+  }
+
+  @Test
+  public void filterAllParameterizedMethod() {
+    builder.addTestMethod(ParameterizedTest.class.getName(), "param");
+
+    List<String> results = runRequest(builder.build());
+
+    assertThat(results)
+        .containsExactly(
+            ParameterizedTest.class.getName() + "#param[0]",
+            ParameterizedTest.class.getName() + "#param[1]");
+  }
+
+  @Test
+  public void filterParameterizedMethod() {
+    builder.addTestMethod(ParameterizedTest.class.getName(), "param[1]");
+
+    List<String> results = runRequest(builder.build());
+
+    assertThat(results).containsExactly(ParameterizedTest.class.getName() + "#param[1]");
   }
 
   private void setClassPathScanningResults(String... names) throws IOException {
